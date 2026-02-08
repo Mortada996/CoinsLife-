@@ -19,6 +19,12 @@
         "adapter": "kotlin",
         "value": "com.coinslife.CoinsLifeMod"
       }
+    ],
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "com.coinslife.CoinsLifeClient"
+      }
     ]
   },
   "depends": {
