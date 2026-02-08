@@ -2,38 +2,76 @@ package com.coinslife
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.minecraft.command.argument.EntityArgumentType
-import net.minecraft.command.argument.Vec3ArgumentType
+import net.minecraft.command.argument.IntegerArgumentType
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import net.minecraft.nbt.NbtCompound
 
 object CoinsCommands {
     fun register() {
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            dispatcher.register(literal("coinslife")
-                // Command: /coinslife start
-                .then(literal("start")
-                    .requires { it.hasPermissionLevel(2) }
-                    .executes { context ->
-                        val players = context.source.server.playerManager.playerList
-                        players.forEach { player ->
-                            val amount = CoinsManager.startNewSession(player)
-                            player.sendMessage(Text.literal("You have $amount coins").formatted(Formatting.WHITE), true)
-                        }
-                        context.source.sendFeedback({ Text.literal("Session started for all players!") }, true)
-                        1
-                    }
+            dispatcher.register(literal("coins")
+                .requires { it.hasPermissionLevel(2) }
+                
+                // Command: /coins give <Target> <OwnerName> <Amount>
+                .then(literal("give")
+                    .then(argument("targets", EntityArgumentType.players())
+                        .then(argument("owner", EntityArgumentType.player())
+                            .then(argument("amount", IntegerArgumentType.integer(1))
+                                .executes { context ->
+                                    val targets = EntityArgumentType.getPlayers(context, "targets")
+                                    val owner = EntityArgumentType.getPlayer(context, "owner")
+                                    val amount = IntegerArgumentType.getInteger(context, "amount")
+                                    
+                                    targets.forEach { target ->
+                                        val stack = ModItems.PLAYER_COIN.defaultStack
+                                        stack.count = amount
+                                        val nbt = stack.orCreateNbt
+                                        nbt.putString("CoinOwner", owner.gameProfile.name)
+                                        stack.setCustomName(Text.literal("${owner.gameProfile.name}'s Coin").formatted(Formatting.YELLOW))
+                                        target.inventory.offerOrDrop(stack)
+                                    }
+                                    1
+                                }
+                            )
+                        )
+                    )
                 )
-                // Command: /coinslife revive [player]
-                .then(literal("revive")
-                    .then(argument("player", EntityArgumentType.player())
-                        .executes { context ->
-                            val target = EntityArgumentType.getPlayer(context, "player")
-                            val source = context.source.player ?: return@executes 0
-                            
-                            if (CoinsManager.getBalance(source) >= 15) {
-                                CoinsManager.modifyBalance(source, -15)
+
+                // Command: /coins clear <Target> <OwnerName> <Amount>
+                .then(literal("clear")
+                    .then(argument("targets", EntityArgumentType.players())
+                        .then(argument("owner", EntityArgumentType.player())
+                            .then(argument("amount", IntegerArgumentType.integer(1))
+                                .executes { context ->
+                                    val targets = EntityArgumentType.getPlayers(context, "targets")
+                                    val ownerName = EntityArgumentType.getPlayer(context, "owner").gameProfile.name
+                                    val amount = IntegerArgumentType.getInteger(context, "amount")
+                                    
+                                    targets.forEach { target ->
+                                        var countToRemove = amount
+                                        for (i in 0 until target.inventory.size()) {
+                                            val stack = target.inventory.getStack(i)
+                                            if (stack.item == ModItems.PLAYER_COIN && stack.nbt?.getString("CoinOwner") == ownerName) {
+                                                val take = minOf(stack.count, countToRemove)
+                                                stack.decrement(take)
+                                                countToRemove -= take
+                                                if (countToRemove <= 0) break
+                                            }
+                                        }
+                                    }
+                                    1
+                                }
+                            )
+                        )
+                    )
+                )
+            )
+        }
+    }
+}
                                 CoinsManager.modifyBalance(target, 5)
                                 source.sendMessage(Text.literal("I have revived ${target.gameProfile.name}").formatted(Formatting.GREEN), false)
                                 1
