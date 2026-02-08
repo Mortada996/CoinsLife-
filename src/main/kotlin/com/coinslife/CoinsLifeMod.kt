@@ -5,8 +5,7 @@ import org.slf4j.LoggerFactory
 
 class CoinsLifeMod : ModInitializer {
     override fun onInitialize() {
-        LOGGER.info("CoinsLife initialized! Balance is your lifeline.")
-        // هنا سنضيف لاحقاً نظام الكوينز والـ Boogeyman
+        LOGGER.info("CoinsLife initialized successfully.")
     }
 
     companion object {
