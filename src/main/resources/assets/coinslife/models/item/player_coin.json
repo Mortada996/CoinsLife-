@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "coinslife:item/player_coin"
+    "layer0": "coinslife:item/base_coin",
+    "layer1": "coinslife:item/player_coin"
   }
 }
