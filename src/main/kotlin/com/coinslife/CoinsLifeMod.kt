@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory
 
 class CoinsLifeMod : ModInitializer {
     override fun onInitialize() {
-        // Register the death system (Penalty -5, -10 and Reward +5)
         DeathListener.register()
+        CoinsCommands.register() 
         
-        LOGGER.info("CoinsLife: Systems activated and death listener registered.")
+        LOGGER.info("CoinsLife: All systems and commands are live!")
     }
 
     companion object {
