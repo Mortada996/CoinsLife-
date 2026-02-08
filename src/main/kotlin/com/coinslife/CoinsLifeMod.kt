@@ -5,10 +5,13 @@ import org.slf4j.LoggerFactory
 
 class CoinsLifeMod : ModInitializer {
     override fun onInitialize() {
-        DeathListener.register()
-        CoinsCommands.register() 
+        // This line is VERY important to activate your coin
+        ModItems.register() 
         
-        LOGGER.info("CoinsLife: All systems and commands are live!")
+        DeathListener.register()
+        CoinsCommands.register()
+        
+        LOGGER.info("CoinsLife: Mod items and systems are now active!")
     }
 
     companion object {
